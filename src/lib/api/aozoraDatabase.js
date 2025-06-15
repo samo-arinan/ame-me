@@ -15,12 +15,61 @@ export async function loadAozoraDatabase() {
 		return loadingPromise;
 	}
 	
-	// 静的データを使用する
-	// 将来的にはAPI経由で最新データを取得する実装に置き換える
-	cachedBooks = getStaticDatabase();
-	console.log(`Loaded ${cachedBooks.length} books from static database`);
+	loadingPromise = fetchAozoraBooks();
 	
-	return cachedBooks;
+	try {
+		cachedBooks = await loadingPromise;
+		console.log(`Loaded ${cachedBooks.length} books from Aozora API`);
+		return cachedBooks;
+	} catch (error) {
+		console.warn('Failed to load from Aozora API, using fallback data:', error);
+		cachedBooks = getStaticDatabase();
+		console.log(`Loaded ${cachedBooks.length} books from fallback database`);
+		return cachedBooks;
+	} finally {
+		loadingPromise = null;
+	}
+}
+
+/**
+ * 青空文庫APIから作品データを取得
+ */
+async function fetchAozoraBooks() {
+	const apiUrl = 'https://www.aozorahack.net/api/v0.1/books';
+	
+	try {
+		console.log('Fetching books from Aozora API...');
+		const response = await fetch(apiUrl);
+		
+		if (!response.ok) {
+			throw new Error(`API request failed: ${response.status}`);
+		}
+		
+		const data = await response.json();
+		
+		if (!data.books || !Array.isArray(data.books)) {
+			throw new Error('Invalid API response format');
+		}
+		
+		// APIレスポンスを内部形式に変換
+		const books = data.books.map(book => ({
+			'作品ID': book.book_id?.toString() || '',
+			'作品名': book.title || '',
+			'姓': book.authors?.[0]?.last_name || '',
+			'名': book.authors?.[0]?.first_name || '',
+			'書き出し': book.description || '',
+			'テキストファイルURL': book.text_url || '',
+			cardNumber: extractCardNumber(book.text_url),
+			fileName: extractFileName(book.text_url)
+		}));
+		
+		// 有効なデータのみフィルタリング
+		return books.filter(book => book['作品名'] && book['姓']);
+		
+	} catch (error) {
+		console.error('Error fetching from Aozora API:', error);
+		throw error;
+	}
 }
 
 // 以下の関数は静的データを使用するため一時的にコメントアウト
