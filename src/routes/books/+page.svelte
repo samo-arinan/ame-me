@@ -5,6 +5,7 @@
 	
 	let searchQuery = '';
 	let loading = false;
+	let searchType = 'all'; // 'all', 'title', 'author'
 	
 	onMount(async () => {
 		loading = true;
@@ -15,7 +16,7 @@
 	
 	async function search() {
 		loading = true;
-		const bookList = await fetchBooks(searchQuery);
+		const bookList = await fetchBooks(searchQuery, searchType);
 		books.set(bookList);
 		loading = false;
 	}
@@ -25,10 +26,15 @@
 	<h1>作品一覧</h1>
 	
 	<div class="search">
+		<select bind:value={searchType} class="search-type">
+			<option value="all">すべて</option>
+			<option value="title">作品名のみ</option>
+			<option value="author">著者名のみ</option>
+		</select>
 		<input 
 			type="text" 
 			bind:value={searchQuery}
-			placeholder="作品を検索..."
+			placeholder="作品名または著者名で検索..."
 			on:keydown={(e) => e.key === 'Enter' && search()}
 		/>
 		<button on:click={search}>検索</button>
@@ -62,6 +68,13 @@
 		display: flex;
 		gap: 0.5rem;
 		margin-bottom: 2rem;
+	}
+	
+	.search-type {
+		padding: 0.5rem;
+		font-size: 1rem;
+		border: 1px solid #ddd;
+		border-radius: 4px;
 	}
 	
 	.search input {

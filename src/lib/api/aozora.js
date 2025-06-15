@@ -1,7 +1,7 @@
 import { searchBooks, getBookDetail } from './aozoraDatabase.js';
 
-export async function fetchBooks(query = '') {
-	return await searchBooks(query, 50);
+export async function fetchBooks(query = '', searchType = 'all') {
+	return await searchBooks(query, 50, searchType);
 }
 
 export async function fetchBookDetail(bookId) {

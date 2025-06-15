@@ -113,18 +113,41 @@ function extractFileName(url) {
 /**
  * 作品検索
  */
-export async function searchBooks(query = '', limit = 50) {
+export async function searchBooks(query = '', limit = 50, searchType = 'all') {
 	const allBooks = await loadAozoraDatabase();
 	
 	if (!query) {
 		return allBooks.slice(0, limit);
 	}
 	
-	const results = allBooks.filter(book => 
-		book['作品名'].includes(query) || 
-		book['姓'].includes(query) || 
-		book['名'].includes(query)
-	);
+	let results;
+	if (searchType === 'title') {
+		results = allBooks.filter(book => 
+			book['作品名'].includes(query)
+		);
+	} else if (searchType === 'author') {
+		results = allBooks.filter(book => {
+			// 姓名を結合した完全な名前でも検索できるようにする
+			const fullName = book['姓'] + (book['名'] || '');
+			const fullNameWithSpace = book['姓'] + ' ' + (book['名'] || '');
+			return book['姓'].includes(query) || 
+				book['名'].includes(query) ||
+				fullName.includes(query) ||
+				fullNameWithSpace.includes(query);
+		});
+	} else {
+		// searchType === 'all'
+		results = allBooks.filter(book => {
+			// 姓名を結合した完全な名前でも検索できるようにする
+			const fullName = book['姓'] + (book['名'] || '');
+			const fullNameWithSpace = book['姓'] + ' ' + (book['名'] || '');
+			return book['作品名'].includes(query) || 
+				book['姓'].includes(query) || 
+				book['名'].includes(query) ||
+				fullName.includes(query) ||
+				fullNameWithSpace.includes(query);
+		});
+	}
 	
 	return results.slice(0, limit);
 }

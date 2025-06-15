@@ -2,44 +2,27 @@ export async function GET({ params }) {
 	const { cardNumber, fileName } = params;
 	
 	try {
-		// まず指定されたファイル名で試行
-		let actualFileName = fileName;
-		let url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${fileName}/${fileName}.txt`;
+		console.log(`Starting comprehensive file search for: ${cardNumber}/${fileName}`);
 		
-		console.log('Fetching text from:', url);
+		// 段階的フォールバック機能
+		const result = await findAozoraTextWithFallback(cardNumber, fileName);
 		
-		let response = await fetch(url);
-		
-		// 404の場合、GitHubから実際のファイル名を検索
-		if (!response.ok && response.status === 404) {
-			console.log('File not found, searching for actual filename...');
+		if (result.success) {
+			console.log(`✅ Successfully found file using pattern: ${result.pattern}`);
+			return new Response(result.text, {
+				headers: {
+					'Content-Type': 'text/plain; charset=utf-8',
+					'Access-Control-Allow-Origin': '*',
+					'X-File-Pattern': result.pattern // デバッグ用
+				}
+			});
+		} else {
+			console.log(`❌ All patterns failed for: ${cardNumber}/${fileName}`);
+			console.log(`Available files: ${result.availableFiles?.slice(0, 5).join(', ')}...`);
 			
-			// 作品IDからファイル名を推測して検索
-			const workId = fileName.split('_')[0]; // 例: 3343_ruby_48953 -> 3343
-			const actualFileNames = await findActualFileName(cardNumber, workId);
-			
-			if (actualFileNames.length > 0) {
-				actualFileName = actualFileNames[0];
-				url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${actualFileName}/${actualFileName}.txt`;
-				console.log('Trying with actual filename:', url);
-				response = await fetch(url);
-			}
+			throw new Error(`Failed to find file after trying all patterns`);
 		}
 		
-		if (!response.ok) {
-			throw new Error(`Failed to fetch book text: ${response.status}`);
-		}
-		
-		const buffer = await response.arrayBuffer();
-		const decoder = new TextDecoder('shift_jis');
-		const text = decoder.decode(buffer);
-		
-		return new Response(text, {
-			headers: {
-				'Content-Type': 'text/plain; charset=utf-8',
-				'Access-Control-Allow-Origin': '*'
-			}
-		});
 	} catch (error) {
 		console.error('Error fetching book text:', error);
 		
@@ -54,22 +37,95 @@ export async function GET({ params }) {
 	}
 }
 
-// GitHubから実際のファイル名を検索
-async function findActualFileName(cardNumber, workId) {
+// 段階的フォールバック機能 - 複数のパターンを順次試行
+async function findAozoraTextWithFallback(cardNumber, fileName) {
+	const workId = fileName.split('_')[0];
+	const patterns = [];
+	
+	// パターン1: 元のファイル名そのまま
+	patterns.push({
+		name: 'original',
+		url: `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${fileName}/${fileName}.txt`,
+		fileName: fileName
+	});
+	
+	// パターン2: 既知のマッピング
+	const knownMappings = {
+		'000064_394': '386_ruby_15290', // 樋口一葉「十三夜」
+		'000064_122': '392_ruby_15302', // 樋口一葉「十三夜」（別の可能性）
+		'000064_392': '389_ruby_15296', // 樋口一葉「たけくらべ」
+		'000081_43737': '43733_ruby_17836', // 宮沢賢治「銀河鉄道の夜」（推測）
+		'000035_1925': '1047_ruby_20129', // 太宰治「津軽」（推測）
+	};
+	
+	const mappingKey = `${cardNumber}_${workId}`;
+	if (knownMappings[mappingKey]) {
+		const mappedFileName = knownMappings[mappingKey];
+		patterns.push({
+			name: 'known_mapping',
+			url: `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${mappedFileName}/${mappedFileName}.txt`,
+			fileName: mappedFileName
+		});
+	}
+	
+	// パターン3〜N: GitHub APIで類似ファイルを検索
 	try {
-		// 既知の問題のあるファイル名マッピング
-		const knownMappings = {
-			'000064_394': '386_ruby_15290', // 樋口一葉「十三夜」
-			'000064_122': '392_ruby_15302', // 樋口一葉「十三夜」（別の可能性）
-			'000064_392': '389_ruby_15296', // 樋口一葉「たけくらべ」（推測）
-		};
-		
-		const mappingKey = `${cardNumber}_${workId}`;
-		if (knownMappings[mappingKey]) {
-			console.log(`Using known mapping for ${mappingKey}: ${knownMappings[mappingKey]}`);
-			return [knownMappings[mappingKey]];
+		const similarFiles = await findSimilarFiles(cardNumber, workId);
+		for (const similarFile of similarFiles) {
+			patterns.push({
+				name: 'similar_file',
+				url: `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${similarFile}/${similarFile}.txt`,
+				fileName: similarFile
+			});
 		}
-		
+	} catch (error) {
+		console.log('Failed to get similar files from GitHub API:', error);
+	}
+	
+	// 各パターンを順次試行
+	for (const pattern of patterns) {
+		try {
+			console.log(`🔍 Trying pattern ${pattern.name}: ${pattern.fileName}`);
+			
+			const response = await fetch(pattern.url);
+			
+			if (response.ok) {
+				const buffer = await response.arrayBuffer();
+				const decoder = new TextDecoder('shift_jis');
+				const text = decoder.decode(buffer);
+				
+				return {
+					success: true,
+					text: text,
+					pattern: pattern.name,
+					fileName: pattern.fileName
+				};
+			} else {
+				console.log(`❌ Pattern ${pattern.name} failed: ${response.status}`);
+			}
+		} catch (error) {
+			console.log(`❌ Pattern ${pattern.name} error:`, error.message);
+		}
+	}
+	
+	// すべて失敗した場合、利用可能なファイル一覧を返す
+	try {
+		const availableFiles = await getAllAvailableFiles(cardNumber);
+		return {
+			success: false,
+			availableFiles: availableFiles
+		};
+	} catch (error) {
+		return {
+			success: false,
+			availableFiles: []
+		};
+	}
+}
+
+// GitHub APIで類似ファイルを検索
+async function findSimilarFiles(cardNumber, workId) {
+	try {
 		const url = `https://api.github.com/repos/aozorahack/aozorabunko_text/contents/cards/${cardNumber}/files`;
 		const response = await fetch(url);
 		
@@ -78,14 +134,47 @@ async function findActualFileName(cardNumber, workId) {
 		}
 		
 		const files = await response.json();
-		const matchingFiles = files
-			.map(file => file.name)
-			.filter(name => name.startsWith(workId + '_'));
+		const fileNames = files.map(file => file.name);
 		
-		console.log(`Found matching files for work ID ${workId}:`, matchingFiles);
-		return matchingFiles;
+		// 複数の類似性検索を実行
+		const similarFiles = [];
+		
+		// 1. 作品IDで始まるファイル
+		similarFiles.push(...fileNames.filter(name => name.startsWith(workId + '_')));
+		
+		// 2. 作品IDを含むファイル
+		similarFiles.push(...fileNames.filter(name => name.includes(workId) && !name.startsWith(workId + '_')));
+		
+		// 3. 類似した番号のファイル（±10以内）
+		const baseNum = parseInt(workId);
+		if (!isNaN(baseNum)) {
+			for (let i = baseNum - 10; i <= baseNum + 10; i++) {
+				similarFiles.push(...fileNames.filter(name => name.startsWith(i + '_')));
+			}
+		}
+		
+		// 重複を除去して返す
+		return [...new Set(similarFiles)];
 	} catch (error) {
-		console.error('Error searching for actual filename:', error);
+		console.error('Error finding similar files:', error);
+		return [];
+	}
+}
+
+// 利用可能なすべてのファイルを取得
+async function getAllAvailableFiles(cardNumber) {
+	try {
+		const url = `https://api.github.com/repos/aozorahack/aozorabunko_text/contents/cards/${cardNumber}/files`;
+		const response = await fetch(url);
+		
+		if (!response.ok) {
+			return [];
+		}
+		
+		const files = await response.json();
+		return files.map(file => file.name);
+	} catch (error) {
+		console.error('Error getting available files:', error);
 		return [];
 	}
 }
