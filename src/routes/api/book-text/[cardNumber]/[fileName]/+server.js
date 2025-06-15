@@ -57,6 +57,19 @@ export async function GET({ params }) {
 // GitHubから実際のファイル名を検索
 async function findActualFileName(cardNumber, workId) {
 	try {
+		// 既知の問題のあるファイル名マッピング
+		const knownMappings = {
+			'000064_394': '386_ruby_15290', // 樋口一葉「十三夜」
+			'000064_122': '392_ruby_15302', // 樋口一葉「十三夜」（別の可能性）
+			'000064_392': '389_ruby_15296', // 樋口一葉「たけくらべ」（推測）
+		};
+		
+		const mappingKey = `${cardNumber}_${workId}`;
+		if (knownMappings[mappingKey]) {
+			console.log(`Using known mapping for ${mappingKey}: ${knownMappings[mappingKey]}`);
+			return [knownMappings[mappingKey]];
+		}
+		
 		const url = `https://api.github.com/repos/aozorahack/aozorabunko_text/contents/cards/${cardNumber}/files`;
 		const response = await fetch(url);
 		
