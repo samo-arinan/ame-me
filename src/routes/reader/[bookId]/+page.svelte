@@ -31,14 +31,19 @@
 			}
 			
 			// テキストファイルのパスを構築
-			const textFiles = book.text_files || [];
-			if (textFiles.length === 0) {
+			const textFileUrl = book['テキストファイルURL'];
+			if (!textFileUrl) {
 				throw new Error('テキストファイルが見つかりません');
 			}
 			
-			const firstFile = textFiles[0];
-			const cardNumber = book.card.id;
-			const fileName = firstFile.file_name?.replace('.txt', '') || cardNumber;
+			// URLからファイル情報を抽出
+			const urlParts = textFileUrl.match(/\/cards\/(\d+)\/files\/(\d+)_/);
+			if (!urlParts) {
+				throw new Error('テキストファイルのURLが無効です');
+			}
+			
+			const cardNumber = urlParts[1];
+			const fileName = urlParts[2];
 			
 			// テキストを取得
 			bookText = await fetchBookText(cardNumber, fileName);
@@ -137,8 +142,8 @@
 		>
 			<div class="book-content">
 				{#if book}
-					<h1 class="book-title">{book.title}</h1>
-					<p class="book-author">著者: {book.authors?.[0]?.full_name || '作者不明'}</p>
+					<h1 class="book-title">{book['作品名']}</h1>
+					<p class="book-author">著者: {book['姓']} {book['名'] || ''}</p>
 				{/if}
 				<div class="text-content">
 					{@html parsedText}

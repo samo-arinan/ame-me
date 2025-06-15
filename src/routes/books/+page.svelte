@@ -41,9 +41,10 @@
 	{:else}
 		<div class="book-list">
 			{#each $books as book}
-				<a href="/reader/{book.book_id}" class="book-item">
-					<h3>{book.title}</h3>
-					<p>{book.authors?.[0]?.full_name || '作者不明'}</p>
+				<a href="/reader/{book['作品ID']}" class="book-item">
+					<h3>{book['作品名']}</h3>
+					<p>{book['姓']} {book['名'] || ''}</p>
+					<small>{book['書き出し'] || ''}</small>
 				</a>
 			{/each}
 		</div>
@@ -100,7 +101,14 @@
 	}
 	
 	.book-item p {
-		margin: 0;
+		margin: 0 0 0.5rem 0;
 		color: #666;
+	}
+	
+	.book-item small {
+		color: #999;
+		font-size: 0.85em;
+		display: block;
+		margin-top: 0.25rem;
 	}
 </style>
