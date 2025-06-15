@@ -1,42 +1,61 @@
+// キャッシュ用の変数
+let cachedCSV = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24時間
+
 export async function GET() {
 	try {
-		// 青空文庫の公式CSVファイルを取得
-		const response = await fetch('https://www.aozora.gr.jp/index_pages/list_person_all_extended_utf8.zip');
+		// キャッシュが有効な場合は、キャッシュから返す
+		if (cachedCSV && (Date.now() - lastFetchTime) < CACHE_DURATION) {
+			return new Response(cachedCSV, {
+				headers: {
+					'Content-Type': 'text/plain; charset=utf-8',
+					'Cache-Control': 'public, max-age=86400' // 24時間キャッシュ
+				}
+			});
+		}
+
+		// GitHubのaozorahackリポジトリから直接CSVデータを取得する
+		// これは青空文庫の全作品リストを含む事前処理済みのCSVファイル
+		const response = await fetch('https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/index_pages/list_person_all_extended_utf8.csv');
 		
 		if (!response.ok) {
 			throw new Error(`Failed to fetch CSV: ${response.status}`);
 		}
 		
-		const buffer = await response.arrayBuffer();
+		const csvText = await response.text();
 		
-		// zipファイルの中身を展開する必要があるため、
-		// 今回は簡易実装として、事前に用意したサンプルCSVを返す
-		const sampleCSV = generateSampleCSV();
+		// キャッシュを更新
+		cachedCSV = csvText;
+		lastFetchTime = Date.now();
 		
-		return new Response(sampleCSV, {
+		return new Response(csvText, {
 			headers: {
 				'Content-Type': 'text/plain; charset=utf-8',
-				'Access-Control-Allow-Origin': '*'
+				'Cache-Control': 'public, max-age=86400' // 24時間キャッシュ
 			}
 		});
 	} catch (error) {
 		console.error('Error fetching Aozora CSV:', error);
 		
-		// フォールバック: サンプルCSVを返す
-		const sampleCSV = generateSampleCSV();
+		// エラーが発生した場合、拡張サンプルデータを返す
+		// これにより、外部APIが利用できない場合でも最低限の機能を提供
+		const extendedSampleCSV = generateExtendedSampleCSV();
 		
-		return new Response(sampleCSV, {
+		return new Response(extendedSampleCSV, {
 			headers: {
-				'Content-Type': 'text/plain; charset=utf-8'
+				'Content-Type': 'text/plain; charset=utf-8',
+				'Cache-Control': 'public, max-age=3600' // 1時間キャッシュ
 			}
 		});
 	}
 }
 
 /**
- * 拡張されたサンプルCSV生成（100作品以上）
+ * 拡張されたサンプルCSV生成（フォールバック用）
+ * 実際の青空文庫CSVフォーマットに準拠
  */
-function generateSampleCSV() {
+function generateExtendedSampleCSV() {
 	const csvData = [
 		['作品ID', '作品名', '姓', '名', '書き出し', 'テキストファイルURL'],
 		// 太宰治
