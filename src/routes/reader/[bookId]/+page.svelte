@@ -4,6 +4,10 @@
 	import { fetchBookDetail, fetchBookText } from '$lib/api/aozora.js';
 	import { parseAozoraText, extractMetadata } from '$lib/parser/aozora.js';
 	import { currentPosition, fontSize } from '$lib/stores/reader.js';
+	import { analyzeEmotion, createEmotionCache } from '$lib/api/emotion.js';
+	import { currentEmotion, apiKey, emotionAnalysisEnabled } from '$lib/stores/emotion.js';
+	import RainEffect from '$lib/components/RainEffect.svelte';
+	import Settings from '$lib/components/Settings.svelte';
 	
 	let book = null;
 	let bookText = '';
@@ -11,6 +15,8 @@
 	let loading = true;
 	let error = null;
 	let readerContainer;
+	let emotionCache = createEmotionCache();
+	let currentParagraph = '';
 	
 	$: bookId = $page.params.bookId;
 	
@@ -60,9 +66,49 @@
 		if (readerContainer) {
 			const scrollPercent = readerContainer.scrollLeft / (readerContainer.scrollWidth - readerContainer.clientWidth);
 			currentPosition.set(scrollPercent);
+			
+			// 現在の表示位置のテキストを取得して感情分析
+			if ($emotionAnalysisEnabled && $apiKey) {
+				analyzeCurrentParagraph();
+			}
+		}
+	}
+	
+	async function analyzeCurrentParagraph() {
+		if (!bookText || !$apiKey) return;
+		
+		// 現在の位置から前後のテキストを取得（簡易実装）
+		const textLength = bookText.length;
+		const currentPos = Math.floor(textLength * $currentPosition);
+		const paragraphStart = Math.max(0, currentPos - 500);
+		const paragraphEnd = Math.min(textLength, currentPos + 500);
+		const paragraph = bookText.slice(paragraphStart, paragraphEnd);
+		
+		// 段落が変わった場合のみ分析実行
+		if (paragraph === currentParagraph) return;
+		currentParagraph = paragraph;
+		
+		// キャッシュから取得試行
+		if (emotionCache.has(paragraph)) {
+			currentEmotion.set(emotionCache.get(paragraph));
+			return;
+		}
+		
+		// 感情分析実行
+		try {
+			const emotion = await analyzeEmotion(paragraph, $apiKey);
+			if (emotion) {
+				emotionCache.set(paragraph, emotion);
+				currentEmotion.set(emotion);
+			}
+		} catch (error) {
+			console.error('感情分析エラー:', error);
 		}
 	}
 </script>
+
+<RainEffect enabled={$emotionAnalysisEnabled} />
+<Settings />
 
 <div class="reader-wrapper">
 	{#if loading}

@@ -1,38 +1,69 @@
-# sv
+# 青空文庫リーダー
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+縦書き巻物風の読書体験を提供するProgressive Web App
 
-## Creating a project
+## 機能
 
-If you're seeing this, you've probably already done this step. Congrats!
+### 基本機能
+- 青空文庫から作品を検索・表示
+- 縦書きレイアウトで日本の伝統的な読書体験
+- 巻物のような横スクロールインターフェース
+- PWA対応（オフライン読書可能）
+- 響応的デザイン（スマートフォン・タブレット対応）
+
+### 高度な機能
+- OpenAI APIによる感情分析
+- 感情に連動した雨のビジュアルエフェクト
+  - 悲しい場面：雨が強く降る
+  - 楽しい場面：虹が出現
+  - 緊張する場面：風を伴う斜めの雨
+  - 怒りの場面：雷を伴う激しい雨
+- 文字サイズ調整
+- 読書位置の保存（IndexedDB）
+
+## 技術スタック
+
+- **フロントエンド**: Svelte + SvelteKit
+- **データベース**: IndexedDB (idb)
+- **アニメーション**: HTML5 Canvas
+- **PWA**: Service Worker
+- **感情分析**: OpenAI GPT-4o mini API
+
+## 開発・起動方法
 
 ```bash
-# create a new project in the current directory
-npx sv create
+# 依存関係のインストール
+npm install
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
+# 開発サーバー起動
 npm run dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
+# プロダクションビルド
 npm run build
+
+# プロダクション確認
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+## 設定
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+### OpenAI API
+感情分析機能を使用するには、OpenAI API キーが必要です。
+
+1. アプリの設定ボタンをクリック
+2. OpenAI API キーを入力
+3. 保存
+
+キーはブラウザのLocalStorageに保存され、外部に送信されません。
+
+## 青空文庫について
+
+このアプリは[青空文庫](https://www.aozora.gr.jp/)と[青空文庫API](https://www.aozorahack.net/)を使用しています。
+
+## ライセンス
+
+MIT License
+
+## 開発メモ
+
+プロジェクトの詳細な設計と開発方針については `CLAUDE.md` を参照してください。
