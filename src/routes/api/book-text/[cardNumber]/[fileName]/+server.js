@@ -2,12 +2,30 @@ export async function GET({ params }) {
 	const { cardNumber, fileName } = params;
 	
 	try {
-		// 青空文庫のGitHubリポジトリから直接取得
-		const url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${fileName}/${fileName}.txt`;
+		// まず指定されたファイル名で試行
+		let actualFileName = fileName;
+		let url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${fileName}/${fileName}.txt`;
 		
 		console.log('Fetching text from:', url);
 		
-		const response = await fetch(url);
+		let response = await fetch(url);
+		
+		// 404の場合、GitHubから実際のファイル名を検索
+		if (!response.ok && response.status === 404) {
+			console.log('File not found, searching for actual filename...');
+			
+			// 作品IDからファイル名を推測して検索
+			const workId = fileName.split('_')[0]; // 例: 3343_ruby_48953 -> 3343
+			const actualFileNames = await findActualFileName(cardNumber, workId);
+			
+			if (actualFileNames.length > 0) {
+				actualFileName = actualFileNames[0];
+				url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${actualFileName}/${actualFileName}.txt`;
+				console.log('Trying with actual filename:', url);
+				response = await fetch(url);
+			}
+		}
+		
 		if (!response.ok) {
 			throw new Error(`Failed to fetch book text: ${response.status}`);
 		}
@@ -33,6 +51,29 @@ export async function GET({ params }) {
 				'Content-Type': 'text/plain; charset=utf-8'
 			}
 		});
+	}
+}
+
+// GitHubから実際のファイル名を検索
+async function findActualFileName(cardNumber, workId) {
+	try {
+		const url = `https://api.github.com/repos/aozorahack/aozorabunko_text/contents/cards/${cardNumber}/files`;
+		const response = await fetch(url);
+		
+		if (!response.ok) {
+			return [];
+		}
+		
+		const files = await response.json();
+		const matchingFiles = files
+			.map(file => file.name)
+			.filter(name => name.startsWith(workId + '_'));
+		
+		console.log(`Found matching files for work ID ${workId}:`, matchingFiles);
+		return matchingFiles;
+	} catch (error) {
+		console.error('Error searching for actual filename:', error);
+		return [];
 	}
 }
 
