@@ -44,9 +44,16 @@
 				throw new Error('テキストの読み込みに失敗しました');
 			}
 			
+			console.log('取得したテキスト長:', bookText.length);
+			console.log('テキストの最初の300文字:', bookText.substring(0, 300));
+			console.log('テキストの最後の300文字:', bookText.substring(bookText.length - 300));
+			
 			// メタデータ抽出とパース
 			const metadata = extractMetadata(bookText);
 			parsedText = parseAozoraText(metadata.content);
+			
+			console.log('パース後テキスト長:', parsedText.length);
+			console.log('パース後の最初の300文字:', parsedText.substring(0, 300));
 			
 		} catch (err) {
 			error = err.message;

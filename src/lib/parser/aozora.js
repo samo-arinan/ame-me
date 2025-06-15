@@ -37,12 +37,43 @@ export function extractMetadata(text) {
 			metadata.title = line;
 		} else if (line && !metadata.author && line.length < 50) {
 			metadata.author = line;
-			metadata.content = lines.slice(i + 1).join('\n');
 			break;
 		}
 	}
 	
-	if (!metadata.content) {
+	// 実際の本文を抽出（青空文庫の構造に対応）
+	let contentStartIndex = -1;
+	
+	// 説明部分の終了を示すマーカーを探す
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i].trim();
+		// 説明部分が終わった後の空行から本文開始
+		if (line.includes('-------') && i > 5) {
+			// 次の空行以降から本文開始
+			for (let j = i + 1; j < lines.length; j++) {
+				if (lines[j].trim() === '') {
+					contentStartIndex = j + 1;
+					break;
+				}
+			}
+			break;
+		}
+	}
+	
+	// マーカーが見つからない場合は、著者行以降の最初の実質的な内容から開始
+	if (contentStartIndex === -1) {
+		for (let i = 3; i < lines.length; i++) {
+			const line = lines[i].trim();
+			if (line && !line.includes('【') && !line.includes('-------') && !line.includes('《》') && !line.includes('｜：')) {
+				contentStartIndex = i;
+				break;
+			}
+		}
+	}
+	
+	if (contentStartIndex !== -1) {
+		metadata.content = lines.slice(contentStartIndex).join('\n');
+	} else {
 		metadata.content = text;
 	}
 	
