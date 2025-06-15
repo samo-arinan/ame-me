@@ -8,7 +8,7 @@ const SAMPLE_BOOKS = [
 		'書き出し': 'メロスは激怒した。',
 		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000035/files/1567_ruby_4948.zip',
 		cardNumber: '000035',
-		fileName: '1567'
+		fileName: '1567_ruby_4948'
 	},
 	{
 		'作品ID': '456',
@@ -16,69 +16,69 @@ const SAMPLE_BOOKS = [
 		'姓': '芥川',
 		'名': '龍之介',
 		'書き出し': 'ある日の暮方の事である。',
-		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000879/files/456_ruby_14426.zip',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000879/files/127_ruby_150.zip',
 		cardNumber: '000879',
-		fileName: '456'
+		fileName: '127_ruby_150'
 	},
 	{
-		'作品ID': '1',
+		'作品ID': '773',
 		'作品名': 'こころ',
 		'姓': '夏目',
 		'名': '漱石',
 		'書き出し': '私はその人を常に先生と呼んでいた。',
 		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000148/files/773_ruby_5968.zip',
 		cardNumber: '000148',
-		fileName: '773'
+		fileName: '773_ruby_5968'
 	},
 	{
-		'作品ID': '1934',
+		'作品ID': '92',
 		'作品名': '蜘蛛の糸',
 		'姓': '芥川',
 		'名': '龍之介',
 		'書き出し': 'ある日の事でございます。',
-		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000879/files/92_ruby_14426.zip',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000879/files/92_ruby_164.zip',
 		cardNumber: '000879',
-		fileName: '92'
+		fileName: '92_ruby_164'
 	},
 	{
-		'作品ID': '42',
+		'作品ID': '301',
 		'作品名': '人間失格',
 		'姓': '太宰',
 		'名': '治',
 		'書き出し': '恥の多い生涯を送って来ました。',
-		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000035/files/301_ruby_4685.zip',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000035/files/301_ruby_5915.zip',
 		cardNumber: '000035',
-		fileName: '301'
+		fileName: '301_ruby_5915'
 	},
 	{
-		'作品ID': '1060',
+		'作品ID': '752',
 		'作品名': '坊っちゃん',
 		'姓': '夏目',
 		'名': '漱石',
 		'書き出し': '親譲りの無鉄砲で小供の時から損ばかりしている。',
 		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000148/files/752_ruby_2438.zip',
 		cardNumber: '000148',
-		fileName: '752'
+		fileName: '752_ruby_2438'
 	},
 	{
-		'作品ID': '2284',
+		'作品ID': '436',
 		'作品名': '檸檬',
 		'姓': '梶井',
 		'名': '基次郎',
 		'書き出し': 'えたいの知れない不吉な塊が私の心を始終圧えつけていた。',
 		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000074/files/436_ruby_19028.zip',
 		cardNumber: '000074',
-		fileName: '436'
+		fileName: '436_ruby_19028'
 	},
 	{
-		'作品ID': '1',
+		'作品ID': '43737',
 		'作品名': '銀河鉄道の夜',
 		'姓': '宮沢',
 		'名': '賢治',
 		'書き出し': '「ではみなさんは、そういうふうに川だと言われたり、乳の流れたあとだと言われたりしていたこのぼんやりと白いものがほんとうは何かご承知ですか。」',
-		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000081/files/456_ruby_17925.zip',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000081/files/43737_ruby_17045.zip',
 		cardNumber: '000081',
-		fileName: '456'
+		fileName: '43737_ruby_17045'
 	}
 ];
 
@@ -127,7 +127,7 @@ export async function fetchBookText(cardNumber, fileName) {
 
 function getDemoText(fileName) {
 	const demoTexts = {
-		'1567': `
+		'1567_ruby_4948': `
 走れメロス
 太宰治
 
@@ -135,10 +135,10 @@ function getDemoText(fileName) {
 
 （青空文庫より）
 
-※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
 		`.trim(),
 		
-		'456': `
+		'127_ruby_150': `
 羅生門
 芥川龍之介
 
@@ -148,10 +148,10 @@ function getDemoText(fileName) {
 
 （青空文庫より）
 
-※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
 		`.trim(),
 		
-		'773': `
+		'773_ruby_5968': `
 こころ
 夏目漱石
 
@@ -159,7 +159,7 @@ function getDemoText(fileName) {
 
 （青空文庫より）
 
-※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
 		`.trim()
 	};
 	
@@ -168,6 +168,7 @@ function getDemoText(fileName) {
 
 この作品のテキストはまだ読み込まれていません。
 
-※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
+実際の作品は青空文庫GitHubリポジトリから取得を試行します。
 	`.trim();
 }
