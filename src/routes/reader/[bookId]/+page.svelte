@@ -31,19 +31,12 @@
 			}
 			
 			// テキストファイルのパスを構築
-			const textFileUrl = book['テキストファイルURL'];
-			if (!textFileUrl) {
-				throw new Error('テキストファイルが見つかりません');
-			}
+			const cardNumber = book.cardNumber;
+			const fileName = book.fileName;
 			
-			// URLからファイル情報を抽出
-			const urlParts = textFileUrl.match(/\/cards\/(\d+)\/files\/(\d+)_/);
-			if (!urlParts) {
-				throw new Error('テキストファイルのURLが無効です');
+			if (!cardNumber || !fileName) {
+				throw new Error('テキストファイル情報が見つかりません');
 			}
-			
-			const cardNumber = urlParts[1];
-			const fileName = urlParts[2];
 			
 			// テキストを取得
 			bookText = await fetchBookText(cardNumber, fileName);

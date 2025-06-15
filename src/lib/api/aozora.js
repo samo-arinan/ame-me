@@ -1,36 +1,116 @@
-const API_BASE = 'https://api.bungomail.com/v0';
+// 人気作品のサンプルデータ（実際の青空文庫作品）
+const SAMPLE_BOOKS = [
+	{
+		'作品ID': '1567',
+		'作品名': '走れメロス',
+		'姓': '太宰',
+		'名': '治',
+		'書き出し': 'メロスは激怒した。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000035/files/1567_ruby_4948.zip',
+		cardNumber: '000035',
+		fileName: '1567'
+	},
+	{
+		'作品ID': '456',
+		'作品名': '羅生門',
+		'姓': '芥川',
+		'名': '龍之介',
+		'書き出し': 'ある日の暮方の事である。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000879/files/456_ruby_14426.zip',
+		cardNumber: '000879',
+		fileName: '456'
+	},
+	{
+		'作品ID': '1',
+		'作品名': 'こころ',
+		'姓': '夏目',
+		'名': '漱石',
+		'書き出し': '私はその人を常に先生と呼んでいた。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000148/files/773_ruby_5968.zip',
+		cardNumber: '000148',
+		fileName: '773'
+	},
+	{
+		'作品ID': '1934',
+		'作品名': '蜘蛛の糸',
+		'姓': '芥川',
+		'名': '龍之介',
+		'書き出し': 'ある日の事でございます。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000879/files/92_ruby_14426.zip',
+		cardNumber: '000879',
+		fileName: '92'
+	},
+	{
+		'作品ID': '42',
+		'作品名': '人間失格',
+		'姓': '太宰',
+		'名': '治',
+		'書き出し': '恥の多い生涯を送って来ました。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000035/files/301_ruby_4685.zip',
+		cardNumber: '000035',
+		fileName: '301'
+	},
+	{
+		'作品ID': '1060',
+		'作品名': '坊っちゃん',
+		'姓': '夏目',
+		'名': '漱石',
+		'書き出し': '親譲りの無鉄砲で小供の時から損ばかりしている。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000148/files/752_ruby_2438.zip',
+		cardNumber: '000148',
+		fileName: '752'
+	},
+	{
+		'作品ID': '2284',
+		'作品名': '檸檬',
+		'姓': '梶井',
+		'名': '基次郎',
+		'書き出し': 'えたいの知れない不吉な塊が私の心を始終圧えつけていた。',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000074/files/436_ruby_19028.zip',
+		cardNumber: '000074',
+		fileName: '436'
+	},
+	{
+		'作品ID': '1',
+		'作品名': '銀河鉄道の夜',
+		'姓': '宮沢',
+		'名': '賢治',
+		'書き出し': '「ではみなさんは、そういうふうに川だと言われたり、乳の流れたあとだと言われたりしていたこのぼんやりと白いものがほんとうは何かご承知ですか。」',
+		'テキストファイルURL': 'https://www.aozora.gr.jp/cards/000081/files/456_ruby_17925.zip',
+		cardNumber: '000081',
+		fileName: '456'
+	}
+];
 
 export async function fetchBooks(query = '') {
-	try {
-		const url = query ? `${API_BASE}/books?作品名=/${encodeURIComponent(query)}/&limit=20` : `${API_BASE}/books?limit=20`;
-		const response = await fetch(url);
-		if (!response.ok) throw new Error('Failed to fetch books');
-		const data = await response.json();
-		return data.books || [];
-	} catch (error) {
-		console.error('Error fetching books:', error);
-		return [];
+	// デモ用：サンプルデータから検索
+	if (!query) {
+		return SAMPLE_BOOKS;
 	}
+	
+	return SAMPLE_BOOKS.filter(book => 
+		book['作品名'].includes(query) || 
+		book['姓'].includes(query) || 
+		book['名'].includes(query)
+	);
 }
 
 export async function fetchBookDetail(bookId) {
-	try {
-		const response = await fetch(`${API_BASE}/books?作品ID=${bookId}`);
-		if (!response.ok) throw new Error('Failed to fetch book detail');
-		const data = await response.json();
-		return data.books?.[0] || null;
-	} catch (error) {
-		console.error('Error fetching book detail:', error);
-		return null;
-	}
+	// サンプルデータから検索
+	return SAMPLE_BOOKS.find(book => book['作品ID'] === bookId) || null;
 }
 
 export async function fetchBookText(cardNumber, fileName) {
 	try {
-		// 直接GitHubから取得
+		// 青空文庫のGitHubリポジトリから直接取得
 		const url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${fileName}/${fileName}.txt`;
+		
+		console.log('Fetching text from:', url);
+		
 		const response = await fetch(url);
-		if (!response.ok) throw new Error('Failed to fetch book text');
+		if (!response.ok) {
+			throw new Error(`Failed to fetch book text: ${response.status}`);
+		}
 		
 		const buffer = await response.arrayBuffer();
 		const decoder = new TextDecoder('shift_jis');
@@ -39,6 +119,55 @@ export async function fetchBookText(cardNumber, fileName) {
 		return text;
 	} catch (error) {
 		console.error('Error fetching book text:', error);
-		return null;
+		
+		// フォールバック: デモ用のサンプルテキスト
+		return getDemoText(fileName);
 	}
+}
+
+function getDemoText(fileName) {
+	const demoTexts = {
+		'1567': `
+走れメロス
+太宰治
+
+メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
+
+（青空文庫より）
+
+※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+		`.trim(),
+		
+		'456': `
+羅生門
+芥川龍之介
+
+ある日の暮方の事である。一人の下人が、羅生門の下で雨やみを待っていた。
+
+広い門の下には、この男のほかに誰もいない。ただ、所々丹塗の剥げた、大きな円柱に、蟋蟀が一匹とまっている。羅生門が、朱雀大路にある以上は、この男のほかにも、雨やみを待っている人があってもよさそうなものである。
+
+（青空文庫より）
+
+※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+		`.trim(),
+		
+		'773': `
+こころ
+夏目漱石
+
+私はその人を常に先生と呼んでいた。だからここでもただ先生と書くだけで本名は打ち明けない。これは世間を憚かる遠慮というよりも、その方が私にとって自然だからである。
+
+（青空文庫より）
+
+※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+		`.trim()
+	};
+	
+	return demoTexts[fileName] || `
+サンプルテキスト
+
+この作品のテキストはまだ読み込まれていません。
+
+※これはデモ用のサンプルテキストです。実際の作品はGitHubリポジトリから取得されます。
+	`.trim();
 }
