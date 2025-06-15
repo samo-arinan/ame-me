@@ -78,9 +78,16 @@ function generateSampleCSV() {
 		['13', '金閣寺', '三島', '由紀夫', '幼時から父は、私によく金閣のことを語った。', 'https://www.aozora.gr.jp/cards/000094/files/13_ruby_41883.zip'],
 		['155', '風立ちぬ', '堀', '辰雄', '風立ちぬ、いざ生きめやも。', 'https://www.aozora.gr.jp/cards/000191/files/155_ruby_5405.zip'],
 		
-		// 推理小説
+		// 推理小説・SF（江戸川乱歩）
 		['1929', '押絵と旅する男', '江戸川', '乱歩', 'その男の職業は何であるか知らない。', 'https://www.aozora.gr.jp/cards/000097/files/1929_ruby_7234.zip'],
 		['1935', '二銭銅貨', '江戸川', '乱歩', '「また人殺しがあったよ」', 'https://www.aozora.gr.jp/cards/000097/files/1935_ruby_7370.zip'],
+		
+		// 海野十三（日本SFの父）
+		['3372', '人造人間エフ氏', '海野', '十三', '私はこの奇妙な物語を語らねばならない。', 'https://www.aozora.gr.jp/cards/000160/files/3372_ruby_48982.zip'],
+		['3522', '人造人間事件', '海野', '十三', 'その夜、私は実験室で遅くまで働いていた。', 'https://www.aozora.gr.jp/cards/000160/files/3522_ruby_49117.zip'],
+		['3343', '人造人間戦車の機密', '海野', '十三', '戦車の轟音が地下に響いた。', 'https://www.aozora.gr.jp/cards/000160/files/3343_ruby_48953.zip'],
+		['1255', '海野十三敗戦日記', '海野', '十三', '昭和二十年八月十五日', 'https://www.aozora.gr.jp/cards/000160/files/1255_ruby_40386.zip'],
+		['1219', '殺人光線と毒ガス', '海野', '十三', '科学の力は恐ろしいものである。', 'https://www.aozora.gr.jp/cards/000160/files/1219_ruby_40382.zip'],
 		
 		// 探偵小説
 		['2582', '智恵子抄', '高村', '光太郎', 'あどけない話', 'https://www.aozora.gr.jp/cards/001168/files/46019_ruby_24391.zip'],
@@ -96,10 +103,28 @@ function generateSampleCSV() {
 		// 戦争文学
 		['4302', '野火', '大岡', '昇平', 'その男は三十歳前後の兵隊であった。', 'https://www.aozora.gr.jp/cards/000252/files/4302_ruby_18562.zip'],
 		
-		// より多くの作品（フィクション作品IDを含む）
+		// 小泉八雲（ラフカディオ・ハーン）
+		['1358', '雪女', '小泉', '八雲', 'ある雪の深い夜のことであった。', 'https://www.aozora.gr.jp/cards/000258/files/1374_ruby_5639.zip'],
+		['128', '耳なし芳一の話', '小泉', '八雲', '下関の赤間が関は、源平最後の決戦の場として有名である。', 'https://www.aozora.gr.jp/cards/000258/files/128_ruby_5639.zip'],
+		
+		// 坂口安吾
+		['1029', '堕落論', '坂口', '安吾', '人間は堕落する。そして、よい意味でも悪い意味でも堕落の道を歩む。', 'https://www.aozora.gr.jp/cards/000123/files/1029_ruby_5639.zip'],
+		['4799', '風博士', '坂口', '安吾', '風博士は奇妙な男であった。', 'https://www.aozora.gr.jp/cards/000123/files/4799_ruby_48751.zip'],
+		
+		// 横光利一
+		['128', '蠅', '横光', '利一', '蠅が手を擦っている。', 'https://www.aozora.gr.jp/cards/000168/files/128_ruby_5639.zip'],
+		['1562', '機械', '横光', '利一', '機械の音が単調に響いている。', 'https://www.aozora.gr.jp/cards/000168/files/1562_ruby_5639.zip'],
+		
+		// 古典文学
 		['9001', '源氏物語', '紫式', '部', 'いづれの御時にか、女御、更衣あまたさぶらひたまひけるなかに...', 'https://www.aozora.gr.jp/cards/000001/files/9001_ruby_1001.zip'],
 		['9002', '枕草子', '清少', '納言', '春はあけぼの。やうやう白くなりゆく山ぎは...', 'https://www.aozora.gr.jp/cards/000002/files/9002_ruby_1002.zip'],
-		['9003', '竹取物語', '', '', '今は昔、竹取の翁といふ者ありけり。', 'https://www.aozora.gr.jp/cards/000003/files/9003_ruby_1003.zip']
+		['9003', '竹取物語', '', '', '今は昔、竹取の翁といふ者ありけり。', 'https://www.aozora.gr.jp/cards/000003/files/9003_ruby_1003.zip'],
+		
+		// 幸田露伴
+		['5896', '五重塔', '幸田', '露伴', '上野の山の花は散り尽して、青葉の季節となった。', 'https://www.aozora.gr.jp/cards/000051/files/5896_ruby_42808.zip'],
+		
+		// 有島武郎  
+		['1565', 'カインの末裔', '有島', '武郎', '十勝平野の果てしない地平線が見える。', 'https://www.aozora.gr.jp/cards/000025/files/1565_ruby_5639.zip']
 	];
 	
 	return csvData.map(row => row.join('\t')).join('\n');
