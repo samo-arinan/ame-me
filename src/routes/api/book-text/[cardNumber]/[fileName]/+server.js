@@ -1,51 +1,53 @@
-import { searchBooks, getBookDetail } from './aozoraDatabase.js';
-
-export async function fetchBooks(query = '') {
-	return await searchBooks(query, 50);
-}
-
-export async function fetchBookDetail(bookId) {
-	return await getBookDetail(bookId);
-}
-
-export async function fetchBookText(cardNumber, fileName) {
+export async function GET({ params }) {
+	const { cardNumber, fileName } = params;
+	
 	try {
-		// サーバーサイドプロキシ経由で青空文庫テキストを取得
-		const url = `/api/book-text/${cardNumber}/${fileName}`;
+		// 青空文庫のGitHubリポジトリから直接取得
+		const url = `https://raw.githubusercontent.com/aozorahack/aozorabunko_text/master/cards/${cardNumber}/files/${fileName}/${fileName}.txt`;
 		
-		console.log('Fetching text from proxy:', url);
+		console.log('Fetching text from:', url);
 		
 		const response = await fetch(url);
 		if (!response.ok) {
 			throw new Error(`Failed to fetch book text: ${response.status}`);
 		}
 		
-		const text = await response.text();
+		const buffer = await response.arrayBuffer();
+		const decoder = new TextDecoder('shift_jis');
+		const text = decoder.decode(buffer);
 		
-		return text;
+		return new Response(text, {
+			headers: {
+				'Content-Type': 'text/plain; charset=utf-8',
+				'Access-Control-Allow-Origin': '*'
+			}
+		});
 	} catch (error) {
 		console.error('Error fetching book text:', error);
 		
 		// フォールバック: デモ用のサンプルテキスト
-		return getDemoText(fileName);
+		const demoText = getDemoText(fileName);
+		
+		return new Response(demoText, {
+			headers: {
+				'Content-Type': 'text/plain; charset=utf-8'
+			}
+		});
 	}
 }
 
 function getDemoText(fileName) {
 	const demoTexts = {
-		'1567_ruby_4948': `
-走れメロス
+		'1567_ruby_4948': `走れメロス
 太宰治
 
 メロスは激怒した。必ず、かの邪智暴虐の王を除かなければならぬと決意した。メロスには政治がわからぬ。メロスは、村の牧人である。笛を吹き、羊と遊んで暮して来た。けれども邪悪に対しては、人一倍に敏感であった。
 
 （青空文庫より）
 
-※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
-		`.trim(),
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。`,
 		
-		'127_ruby_150': `
-羅生門
+		'127_ruby_150': `羅生門
 芥川龍之介
 
 ある日の暮方の事である。一人の下人が、羅生門の下で雨やみを待っていた。
@@ -54,27 +56,22 @@ function getDemoText(fileName) {
 
 （青空文庫より）
 
-※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
-		`.trim(),
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。`,
 		
-		'773_ruby_5968': `
-こころ
+		'773_ruby_5968': `こころ
 夏目漱石
 
 私はその人を常に先生と呼んでいた。だからここでもただ先生と書くだけで本名は打ち明けない。これは世間を憚かる遠慮というよりも、その方が私にとって自然だからである。
 
 （青空文庫より）
 
-※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
-		`.trim()
+※GitHubからの取得に失敗したため、デモ用テキストを表示しています。`
 	};
 	
-	return demoTexts[fileName] || `
-サンプルテキスト
+	return demoTexts[fileName] || `サンプルテキスト
 
 この作品のテキストはまだ読み込まれていません。
 
 ※GitHubからの取得に失敗したため、デモ用テキストを表示しています。
-実際の作品は青空文庫GitHubリポジトリから取得を試行します。
-	`.trim();
+実際の作品は青空文庫GitHubリポジトリから取得を試行します。`;
 }
